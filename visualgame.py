@@ -12,7 +12,6 @@ class GameVisulizerSettings:
 
 class GameVisulizer:
     settings : GameVisulizerSettings = GameVisulizerSettings()
-    pygame.display.set_caption("2048")
 
     @classmethod
     def draw_board(cls):
@@ -50,33 +49,43 @@ class GameVisulizer:
         cls.x_size = game.size*(cls.settings.tileSize+cls.settings.boardSize) + cls.settings.boardSize
         cls.y_size = game.size*(cls.settings.tileSize+cls.settings.boardSize) + cls.settings.boardSize + cls.settings.top_size
 
-        cls.screen = pygame.display.set_mode([cls.x_size, cls.y_size])
-
         cls.font = pygame.font.SysFont(cls.settings.font_name, 30)
 
-pygame.init()
-gc = GameCore()
+        cls.start_screen()
 
-GameVisulizer.start(gc)
-GameVisulizer.draw_board()
+    @classmethod
+    def start_screen(cls):
+        cls.screen = pygame.display.set_mode([cls.x_size, cls.y_size])
+        pygame.display.set_caption("2048")
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w:
-                gc.move(Direction.UP)
-            if event.key == pygame.K_s:
-                gc.move(Direction.DOWN)
-            if event.key == pygame.K_a:
-                gc.move(Direction.LEFT)
-            if event.key == pygame.K_d:
-                gc.move(Direction.RIGHT)
+    @classmethod
+    def close(cls):
+        pygame.display.quit()
+
+if(__name__ == "__main__"):
+    pygame.init()
+    gc = GameCore()
+
+    GameVisulizer.start(gc)
+    GameVisulizer.draw_board()
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
             
-            GameVisulizer.draw_board()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w:
+                    gc.move(Direction.UP)
+                if event.key == pygame.K_s:
+                    gc.move(Direction.DOWN)
+                if event.key == pygame.K_a:
+                    gc.move(Direction.LEFT)
+                if event.key == pygame.K_d:
+                    gc.move(Direction.RIGHT)
+                
+                GameVisulizer.draw_board()
 
-pygame.display.quit()
-pygame.quit()
+    GameVisulizer.close()
+    pygame.quit()

@@ -8,14 +8,19 @@ class Boarder:
 
 class GameCore:
     def __init__(self, size: int = 4, start_tiles: int = 2):
+        self.start_tiles = start_tiles
         self.size = size
-        self.tiles : list[list[int | None]] = [[None for x in range(size)] for y in range(size)]
+        self.reset()
+
+    def reset(self) -> None: 
+        self.tiles : list[list[int | None]] = [[None for x in range(self.size)] for y in range(self.size)]
         self.did_board_change = False
         self.game_over = False
         self.moves = 0
         self.score = 0
+        self.largest_tile = 0
 
-        for _ in range(start_tiles):
+        for _ in range(self.start_tiles):
             self.create_random_tile()
 
     def get_neigbor(self, x: int, y: int, dir : Direction) -> int | Boarder:
@@ -80,8 +85,11 @@ class GameCore:
 
     # tile editing
     def merge(self, x, y, dir: Direction):
-        self.tiles[x + dir.value[0]][y + dir.value[1]] *= 2
-        self.score += self.tiles[x + dir.value[0]][y + dir.value[1]]
+        val = self.tiles[x + dir.value[0]][y + dir.value[1]] * 2
+        self.tiles[x + dir.value[0]][y + dir.value[1]] = val
+        
+        if(val > self.largest_tile): self.largest_tile = val
+        self.score += val
         self.tiles[x][y] = None
         self.did_board_change = True
         
@@ -112,7 +120,8 @@ class GameCore:
                     return True
                     
         return False
-    
+
+    #Misc
     def __print__(self):
         for r in self.tiles:
             out = ""

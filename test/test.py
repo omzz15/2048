@@ -92,7 +92,7 @@ class DQNCartPoleSolver:
                     #pass
                     self.env.render()
                 action = self.choose_action(state, self.get_epsilon(e))
-                next_state, reward, done, _, _ = self.env.step(action)
+                next_state, reward, done = self.env.step(action)
                 next_state = self.preprocess_state(next_state)
                 self.remember(state, action, reward, next_state, done)
                 state = next_state
