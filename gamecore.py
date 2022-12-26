@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from direction import Direction
 import random
-from time import sleep
 
 class Boarder:
     pass
 
-
-class Game:
+class GameCore:
     def __init__(self, size: int = 4, start_tiles: int = 2):
         self.size = size
         self.tiles : list[list[int | None]] = [[None for x in range(size)] for y in range(size)]
@@ -127,37 +125,3 @@ class Game:
             print(out)
             print()
             print()
-
-
-if(__name__ == "__main__"):
-    g = Game(size=10)
-
-    # i = ""
-    # while not i == "q":
-    #     g.__print__()
-    #     # print(g.get_diffrence())
-    #     print(f"Moves: {g.moves}")
-    #     i = input()
-    #     if i == 'r':
-    #         g = Game()
-    #     else:
-    #         dir = Direction.to_dir(i)
-    #         if not dir == None:
-    #             g.move(dir)
-
-
-    while True:
-        try:
-            
-            g.move(Direction.UP)
-            g.move(Direction.LEFT)
-            g.move(Direction.DOWN)
-            g.move(Direction.RIGHT)
-            #print()
-            #g.__print__()
-            #sleep(.001)
-        except:
-            print("Game Over!\nFinal Board:")
-            print(f"Moves: {g.moves}")
-            g.__print__()
-            break
