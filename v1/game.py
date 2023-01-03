@@ -9,6 +9,12 @@ import torch.nn.functional as F
 
 from visualgame import GameVisulizer
 
+if torch.cuda.is_available():  
+    dev = torch.device("cuda:0") 
+else:  
+    dev = torch.device("cpu")
+
+# dev = torch.device("cpu")
 
 class DQN(nn.Module):
     def __init__(self):
@@ -16,7 +22,8 @@ class DQN(nn.Module):
         self.fc1 = nn.Linear(16, 48)
         self.fc2 = nn.Linear(48, 48)
         self.fc3 = nn.Linear(48, 96)
-        self.fc4 = nn.Linear(96, 4)
+        self.fc4 = nn.Linear(96, 96)
+        self.fc5 = nn.Linear(96, 4)
 
     def forward(self, x):        
         x = self.fc1(x)
@@ -26,12 +33,14 @@ class DQN(nn.Module):
         x = self.fc3(x)
         x = F.relu(x)
         x = self.fc4(x)
+        x = F.relu(x)
+        x = self.fc5(x)
         return x
 
 class DQNCartPoleSolver:
-    def __init__(self, n_episodes=1000, n_win_ticks=5000, max_env_steps=None, gamma=1.0, epsilon=1.0, epsilon_min=0.01, epsilon_log_decay=0.995, alpha=0.01, alpha_decay=0.01, batch_size=64, monitor=False, quiet=False):
+    def __init__(self, n_episodes=1000, n_win_ticks=500000, max_env_steps=None, gamma=1.0, epsilon=1.0, epsilon_min=0.01, epsilon_log_decay=0.995, alpha=0.01, alpha_decay=0.01, batch_size=64, monitor=False, quiet=False):
         self.memory = deque(maxlen=100000)
-        self.env = GameEnviornment()
+        self.env = GameEnviornment(x_size=4, y_size=4)
         
         self.gamma = gamma
         self.epsilon = epsilon
@@ -44,23 +53,27 @@ class DQNCartPoleSolver:
         self.batch_size = batch_size
         
         self.quiet = quiet
+        self.show_every = 100
         
-        self.dqn = DQN()
-        self.criterion = torch.nn.MSELoss()
+        self.dqn = DQN().to(dev)
+        self.criterion = torch.nn.MSELoss().to(dev)
         self.opt = torch.optim.Adam(self.dqn.parameters(), lr=0.01)
 
     def get_epsilon(self, t):
         return max(self.epsilon_min, min(self.epsilon, 1.0 - math.log10((t + 1) * self.epsilon_decay)))
 
     def preprocess_state(self, state):
-        return torch.tensor(np.reshape(state, [1, 16]), dtype=torch.float32)
+        return torch.tensor(np.reshape(state, [1, 16]), dtype=torch.float32).to(dev)
     
     def choose_action(self, state, epsilon):
         if (np.random.random() <= epsilon):
             return self.env.get_sample_move()
         else:
             with torch.no_grad():
-                return torch.argmax(self.dqn(state)).numpy()
+                if(torch.cuda.is_available()):
+                    return torch.argmax(self.dqn(state)).cpu().numpy()
+                else:
+                    return torch.argmax(self.dqn(state)).numpy()
     
     def remember(self, state, action, reward, next_state, done):
         reward = torch.tensor(reward)
@@ -94,10 +107,10 @@ class DQNCartPoleSolver:
             state = self.preprocess_state(self.env.reset())
             done = False
             i = 0
-            if e % 10 == 0 and not self.quiet:
+            if e % self.show_every == 0 and not self.quiet:
                 GameVisulizer.start_screen()
             while not done:
-                if e % 10 == 0 and not self.quiet:
+                if e % self.show_every == 0 and not self.quiet:
                     #pass
                     self.env.render()
                 action = self.choose_action(state, self.get_epsilon(e))
@@ -111,12 +124,12 @@ class DQNCartPoleSolver:
             if mean_score >= self.n_win_ticks and e >= 100:
                 if not self.quiet: print('Ran {} episodes. Solved after {} trials ✔'.format(e, e - 100))
                 return e - 100
-            if e % 10 == 0 and not self.quiet:
+            if e % self.show_every == 0 and not self.quiet:
                 self.env.stop_render()
                 print('[Episode {}] - Mean survival time over last 100 episodes was {} ticks.'.format(e, mean_score))
                 self.replay(self.batch_size)
 
-            print('Episode {} coplete - score was {}.'.format(e, self.env.score))
+            print(f'Episode {e} coplete - score: {self.env.score}, max tile: {self.env.largest_tile}, moves: {self.env.moves}.'.format(e, self.env.score))
         
         if not self.quiet: print('Did not solve after {} episodes      😞'.format(e))
         return e

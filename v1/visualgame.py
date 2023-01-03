@@ -16,8 +16,8 @@ class GameVisulizer:
     @classmethod
     def draw_board(cls):
         cls.screen.fill((33, 33, 33))
-        for x in range(cls.game.size):
-            for y in range(cls.game.size):
+        for x in range(cls.game.y_size):
+            for y in range(cls.game.x_size):
                 x_pos = cls.settings.boardSize + y*(cls.settings.tileSize+cls.settings.boardSize)
                 y_pos = cls.settings.boardSize + x*(cls.settings.tileSize+cls.settings.boardSize) + cls.settings.top_size
                 val = cls.game.tiles[x][y]
@@ -46,8 +46,8 @@ class GameVisulizer:
     def start(cls, game: GameCore):
         cls.game = game
         
-        cls.x_size = game.size*(cls.settings.tileSize+cls.settings.boardSize) + cls.settings.boardSize
-        cls.y_size = game.size*(cls.settings.tileSize+cls.settings.boardSize) + cls.settings.boardSize + cls.settings.top_size
+        cls.x_size = game.x_size*(cls.settings.tileSize+cls.settings.boardSize) + cls.settings.boardSize
+        cls.y_size = game.y_size*(cls.settings.tileSize+cls.settings.boardSize) + cls.settings.boardSize + cls.settings.top_size
 
         cls.font = pygame.font.SysFont(cls.settings.font_name, 30)
 

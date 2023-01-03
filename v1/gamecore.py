@@ -7,13 +7,14 @@ class Boarder:
     pass
 
 class GameCore:
-    def __init__(self, size: int = 4, start_tiles: int = 2):
+    def __init__(self, x_size: int = 4, y_size: int = 4, start_tiles: int = 2):
         self.start_tiles = start_tiles
-        self.size = size
+        self.x_size = x_size
+        self.y_size = y_size
         self.reset()
 
     def reset(self) -> None: 
-        self.tiles : list[list[int | None]] = [[None for x in range(self.size)] for y in range(self.size)]
+        self.tiles : list[list[int | None]] = [[None for x in range(self.x_size)] for y in range(self.y_size)]
         self.did_board_change = False
         self.game_over = False
         self.moves = 0
@@ -36,25 +37,29 @@ class GameCore:
                     return False
         return True
 
-    # Movement
+    # Movementsize
     def move(self, dir : Direction):
         self.did_board_change = False
-        if dir == Direction.UP:
-            for r in range(1, self.size):
-                for c in range(self.size):
-                    self.move_tile(r, c, dir)
-        elif dir == Direction.DOWN:
-            for r in range(self.size - 2, -1, -1):
-                for c in range(self.size):
-                    self.move_tile(r, c, dir)
-        elif dir == Direction.LEFT:
-            for c in range(1, self.size):
-                for r in range(self.size):
-                    self.move_tile(r, c, dir)
-        elif dir == Direction.RIGHT:
-            for c in range(self.size - 2, -1, -1):
-                for r in range(self.size):
-                    self.move_tile(r, c, dir)
+        if self.y_size > 1:
+            if dir == Direction.UP:
+                for r in range(1, self.y_size):
+                    for c in range(self.x_size):
+                        self.move_tile(r, c, dir)
+            elif dir == Direction.DOWN:
+                for r in range(self.y_size - 2, -1, -1):
+                    for c in range(self.x_size):
+                        self.move_tile(r, c, dir)
+        
+        if self.x_size > 1:
+            if dir == Direction.LEFT:
+                for c in range(1, self.x_size):
+                    for r in range(self.y_size):
+                        self.move_tile(r, c, dir)
+            elif dir == Direction.RIGHT:
+                for c in range(self.x_size - 2, -1, -1):
+                    for r in range(self.y_size):
+                        self.move_tile(r, c, dir)
+        
         
         if self.did_board_change:
             self.create_random_tile()
@@ -100,19 +105,19 @@ class GameCore:
         if self.is_board_full():
             return
         
-        x = random.randint(0,self.size - 1)
-        y = random.randint(0,self.size - 1)
+        x = random.randint(0,self.y_size - 1)
+        y = random.randint(0,self.x_size - 1)
 
         while not self.tiles[x][y] == None:
-            x = random.randint(0,self.size - 1)
-            y = random.randint(0,self.size - 1)
+            x = random.randint(0,self.y_size - 1)
+            y = random.randint(0,self.x_size - 1)
 
         self.create_tile(x, y, 2 if random.random() < 0.9 else  4)
 
     # Checks
     def can_move(self):
-        for r in range(self.size):
-            for c in range(self.size):
+        for r in range(self.y_size):
+            for c in range(self.x_size):
                 val = self.tiles[r][c]
                 if val == None:
                     return True
